@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LadyEmber Songs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg-primary: {{ colors.bg_primary }};
+            --bg-secondary: {{ colors.bg_secondary }};
+            --text-primary: {{ colors.text_primary }};
+            --text-secondary: {{ colors.text_secondary }};
+            --accent: {{ colors.accent }};
+            --success: {{ colors.success }};
+            --border: {{ colors.border }};
+            --font-base: {{ sizes.font_base }};
+            --font-large: {{ sizes.font_large }};
+            --padding: {{ sizes.padding }};
+            --border-radius: {{ sizes.border_radius }};
+            --button-height: {{ sizes.button_height }};
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: var(--font-base);
+        }
+
+        .container {
+            max-width: {{ layout.max_width }};
+            margin: 0 auto;
+            padding: var(--padding);
+        }
+
+        .header {
+            text-align: center;
+            padding: var(--padding) 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: var(--padding);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: {{ layout.gap }};
+            min-height: 80vh;
+        }
+
+        .column {
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            padding: var(--padding);
+            border: 1px solid var(--border);
+        }
+
+        .column h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: var(--font-large);
+        }
+
+        .file-drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--border-radius);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .file-drop-zone:hover {
+            border-color: var(--accent);
+        }
+
+        .audio-item {
+            background: var(--bg-primary);
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border);
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--border-radius);
+            color: var(--text-primary);
+            padding: 15px;
+            font-size: var(--font-base);
+            resize: vertical;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: var(--font-base);
+            height: var(--button-height);
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        @media (max-width: {{ sizes.mobile_breakpoint }}) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🎵 LadyEmber Song Builder</h1>
+        </header>
+
+        <div class="main-grid">
+            <!-- Audio Column -->
+            <div class="column">
+                <h3>🎧 Audio Splices</h3>
+                <div class="file-drop-zone" id="dropZone">
+                    <p>Drop .opus files here or click to upload</p>
+                    <input type="file" id="audioInput" multiple accept=".opus,.mp3,.wav,.m4a" style="display:none;">
+                </div>
+                <div id="audioList"></div>
+                <button class="btn btn-success" onclick="spliceAudio()">🎵 Splice Together</button>
+            </div>
+
+            <!-- Lyrics Column -->
+            <div class="column">
+                <h3>📝 Lyrics</h3>
+                <textarea id="lyricsText" placeholder="Write your lyrics here..."></textarea>
+            </div>
+
+            <!-- Notes Column -->
+            <div class="column">
+                <h3>💭 Notes & Thoughts</h3>
+                <textarea id="notesText" placeholder="Ideas, thoughts, changes..."></textarea>
+                <br><br>
+                <button class="btn" onclick="saveSong()">💾 Save Song</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
