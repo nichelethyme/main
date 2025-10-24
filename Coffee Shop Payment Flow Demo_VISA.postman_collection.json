@@ -1,0 +1,270 @@
+{
+	"info": {
+		"_postman_id": "d0a4a80d-83b6-40c4-a0a6-36844e55e61f",
+		"name": "Coffee Shop Payment Flow Copy",
+		"description": "Complete payment journey with webhook notification",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "46131419"
+	},
+	"item": [
+		{
+			"name": "Step 1 - Validate Card",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"   console.log('=== STEP 1: CARD VALIDATION ===');",
+							"   console.log('Network: ' + (jsonData.scheme || 'visa'));",
+							"   console.log('Type: ' + (jsonData.type || 'debit'));",
+							"   console.log('Bank: ' + (jsonData.bank || 'Unknown'));",
+							"   console.log('Country: ' + (jsonData.country.name || 'Unknown'));",
+							"   pm.collectionVariables.set('card_network', jsonData.scheme || 'visa');",
+							"   pm.collectionVariables.set('card_country', jsonData.country.code || 'US');",
+							"   console.log('✅ Card validated - proceed to fraud check');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://data.handyapi.com/bin/453201",
+					"protocol": "https",
+					"host": [
+						"data",
+						"handyapi",
+						"com"
+					],
+					"path": [
+						"bin",
+						"453201"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 2 - Fraud Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"var cardCountry = pm.collectionVariables.get('card_country') || 'US';",
+							"console.log('=== STEP 2: FRAUD CHECK ===');",
+							"console.log('Customer Location: ' + jsonData.cityName + ', ' + jsonData.countryCode);",
+							"console.log('Card Country: ' + cardCountry);",
+							"if (jsonData.countryCode === cardCountry) {",
+							"  console.log('✅ Location match - low risk');",
+							"  pm.collectionVariables.set('risk_level', 'LOW');",
+							"} else {",
+							"  console.log('⚠️ Location mismatch - medium risk');",
+							"  pm.collectionVariables.set('risk_level', 'MEDIUM');",
+							"}",
+							"pm.collectionVariables.set('customer_location', jsonData.cityName + ', ' + jsonData.countryCode);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://freeipapi.com/api/json/8.8.8.8",
+					"protocol": "https",
+					"host": [
+						"freeipapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"json",
+						"8.8.8.8"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 3 - Calculate Total",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"console.log('=== STEP 3: CALCULATE ORDER ===');",
+							"console.log('Items:');",
+							"console.log('  Grande Latte: $5.50');",
+							"console.log('  Croissant: $3.75');",
+							"console.log('  Tax (8%): $0.74');",
+							"var total = 9.99;",
+							"console.log('  TOTAL: $' + total);",
+							"pm.collectionVariables.set('order_total', total.toFixed(2));",
+							"pm.collectionVariables.set('transaction_id', 'TXN-' + Date.now());",
+							"console.log('✅ Order calculated - processing payment');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.exchangerate-api.com/v4/latest/USD",
+					"protocol": "https",
+					"host": [
+						"api",
+						"exchangerate-api",
+						"com"
+					],
+					"path": [
+						"v4",
+						"latest",
+						"USD"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 4 - Send Webhook",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"console.log('=== STEP 4: WEBHOOK SENT ===');",
+							"console.log('✅ Payment approved and settled');",
+							"console.log('📡 Webhook notification sent to merchant');",
+							"console.log('');",
+							"console.log('Webhook URL: ' + pm.request.url);",
+							"console.log('');",
+							"console.log('Payload sent:');",
+							"var payload = JSON.parse(pm.request.body.raw);",
+							"console.log(JSON.stringify(payload, null, 2));"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"eventType\": \"payment.completed\",\n  \"transactionId\": \"{{transaction_id}}\",\n  \"timestamp\": \"2025-10-24T15:30:00Z\",\n  \"merchant\": {\n    \"id\": \"COFFEE_001\",\n    \"name\": \"Downtown Coffee Shop\"\n  },\n  \"payment\": {\n    \"amount\": \"{{order_total}}\",\n    \"currency\": \"USD\",\n    \"network\": \"{{card_network}}\",\n    \"status\": \"SETTLED\"\n  },\n  \"customer\": {\n    \"location\": \"{{customer_location}}\"\n  },\n  \"risk\": {\n    \"level\": \"{{risk_level}}\"\n  }\n}"
+				},
+				"url": {
+					"raw": "https://webhook.site/26ea65e0-1472-4ebb-86f1-661de9d18edc",
+					"protocol": "https",
+					"host": [
+						"webhook",
+						"site"
+					],
+					"path": [
+						"26ea65e0-1472-4ebb-86f1-661de9d18edc"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 5 - Merchant Report",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"console.log('=== STEP 5: MERCHANT REPORT ===');",
+							"console.log('');",
+							"console.log('📊 TRANSACTION COMPLETE');",
+							"console.log('========================');",
+							"var total = parseFloat(pm.collectionVariables.get('order_total'));",
+							"var fee = (total * 0.029 + 0.30).toFixed(2);",
+							"var net = (total - parseFloat(fee)).toFixed(2);",
+							"console.log('Transaction ID: ' + pm.collectionVariables.get('transaction_id'));",
+							"console.log('Amount: $' + total.toFixed(2));",
+							"console.log('Network: ' + pm.collectionVariables.get('card_network').toUpperCase());",
+							"console.log('Risk Level: ' + pm.collectionVariables.get('risk_level'));",
+							"console.log('');",
+							"console.log('💰 SETTLEMENT');",
+							"console.log('Gross: $' + total.toFixed(2));",
+							"console.log('Fee: -$' + fee);",
+							"console.log('Net: $' + net);",
+							"console.log('');",
+							"console.log('✅ Payment flow complete!');",
+							"console.log('Customer: Receipt sent');",
+							"console.log('Merchant: Funds settle tomorrow');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.exchangerate-api.com/v4/latest/USD",
+					"protocol": "https",
+					"host": [
+						"api",
+						"exchangerate-api",
+						"com"
+					],
+					"path": [
+						"v4",
+						"latest",
+						"USD"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "card_network",
+			"value": ""
+		},
+		{
+			"key": "card_country",
+			"value": ""
+		},
+		{
+			"key": "customer_location",
+			"value": ""
+		},
+		{
+			"key": "risk_level",
+			"value": ""
+		},
+		{
+			"key": "order_total",
+			"value": ""
+		},
+		{
+			"key": "transaction_id",
+			"value": ""
+		}
+	]
+}
