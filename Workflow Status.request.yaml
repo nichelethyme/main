@@ -1,0 +1,20 @@
+$kind: http-request
+name: Workflow Status
+description: ""
+url: https://retrieval.amer-1.jumio.ai/api/v1/accounts/{{accountId}}/workflow-executions/{{workflowExecutionId}}/status
+method: GET
+headers:
+  - key: Accept
+    value: application/json
+    disabled: true
+body:
+  type: json
+  content: ""
+auth:
+  type: oauth2
+  credentials:
+    addTokenTo: header
+settings:
+  disabledSystemHeaders:
+    - content-type
+order: 4611589311710

@@ -1,0 +1,67 @@
+$kind: http-request
+name: Retrieve Result Webhook
+description: ""
+url: https://webhook.site/token/{{my_webhook_url_token}}/requests?query=method:POST&sorting=newest&per_page=1
+method: GET
+headers:
+  - key: Accept
+    value: application/json
+    disabled: false
+  - key: Host
+    value: webhook.site
+    disabled: false
+    description: ""
+  - key: User-Agent
+    value: "Google-Lens "
+    disabled: true
+    description: ""
+queryParams:
+  query: method:POST
+  sorting: newest
+  per_page: "1"
+body:
+  type: json
+  content: ""
+auth:
+  type: apikey
+scripts:
+  - type: afterResponse
+    code: |
+      const response = pm.response.json();
+
+      // Get the newest request from the data array
+      pm.test("A request was returned", function () {
+          pm.expect(response.data).to.be.an("array").that.is.not.empty;
+      });
+
+      const webhookRequest = response.data[0];
+
+      // Confirm it is a POST request
+      pm.test("Newest request is a POST", function () {
+          pm.expect(webhookRequest.method).to.eql("POST");
+      });
+
+      // Parse the JSON string stored in content
+      const content = JSON.parse(webhookRequest.content);
+
+      // Extract the workflow execution ID
+      const workflowExecutionId = content.workflowExecution.id;
+
+      // Save it as a collection variable
+      pm.collectionVariables.set(
+          "workflowExecutionId",
+          workflowExecutionId
+      );
+
+      console.log("workflowExecutionId:", workflowExecutionId);
+
+      pm.test("workflowExecutionId was captured", function () {
+          pm.expect(workflowExecutionId)
+              .to.be.a("string")
+              .and.not.empty;
+      });
+    language: text/javascript
+settings:
+  disabledSystemHeaders:
+    - host
+order: 2742757270987

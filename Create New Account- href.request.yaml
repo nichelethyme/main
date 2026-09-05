@@ -1,0 +1,27 @@
+$kind: http-request
+description: ""
+url: https://account.amer-1.jumio.ai/api/v1/accounts
+method: POST
+headers:
+  Accept: application/json
+body:
+  type: json
+  content: |+
+    {
+      "customerInternalReference": "123456",
+      "workflowDefinition": {
+        "key": 10164
+      },
+      "callbackUrl": "{{my_webhook_url}}",
+      "tokenLifetime": "1d"
+    }
+
+auth:
+  type: oauth2
+  credentials:
+    addTokenTo: header
+scripts:
+  - type: afterResponse
+    code: ""
+    language: text/javascript
+order: 1788019603233

@@ -1,0 +1,21 @@
+$kind: http-request
+description: ""
+url: https://retrieval.amer-1.jumio.ai/api/v1/accounts/{{accountId}}/workflow-executions/{{workflowExecutionId}}
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: json
+  content: |+
+    {
+      "customerInternalReference": "{{customerInternalReference}}",
+      "accountId": "{{}}",
+      "credentialId": "{{}}",
+      "classifier": "FRONT"
+    }
+
+auth:
+  type: oauth2
+  credentials:
+    addTokenTo: header
+order: 3867513000881304
